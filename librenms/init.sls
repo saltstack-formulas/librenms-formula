@@ -127,6 +127,8 @@ librenms_crontab:
     - mode: 600
     - user: root
     - group: wheel
+    # prevent log message
+    - replace: False
 {% else %}
   file.managed:
     - name: /etc/cron.d/librenms
