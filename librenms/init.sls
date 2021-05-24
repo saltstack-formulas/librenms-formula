@@ -9,9 +9,6 @@ librenms_directory:
     - name: {{ librenms.general.app_dir }}
     - user: {{ librenms.general.user }}
     - group: {{ librenms.general.group }}
-    - recurse:
-      - user
-      - group
     - require:
       - user: librenms_user
       - group: librenms_user
@@ -88,16 +85,17 @@ librenms_user:
       - {{ librenms.lookup.webserver_user }}
 
 {% for subdir in ['bootstrap/cache', 'logs', 'rrd', 'storage'] %}
-librenms_{{ subdir | replace('/', '_') }}_folder:
-  file.directory:
-    - name: {{ librenms.general.app_dir }}/{{ subdir }}
-    - user: {{ librenms.general.user }}
-    - group: {{ librenms.general.group }}
-    - recurse:
-      - user
-      - group
-    - mode: 775
-    - require:
+librenms_{{ subdir | replace('/', '_') }}_ownership:
+  cmd.run:
+    - name: chown -R {{ librenms.general.user }}:{{ librenms.general.group }}  {{ librenms.general.app_dir }}/{{ subdir }}
+    - onchanges:
+      - git: librenms_git
+      - cmd: librenms_compose_install
+
+librenms_{{ subdir | replace('/', '_') }}_permissions:
+  cmd.run:
+    - name: chmod -R ug=rwX,o=rX {{ librenms.general.app_dir }}/{{ subdir }}
+    - onchanges:
       - git: librenms_git
       - cmd: librenms_compose_install
 
